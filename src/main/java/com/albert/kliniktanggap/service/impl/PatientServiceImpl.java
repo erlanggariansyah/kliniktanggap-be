@@ -5,7 +5,6 @@ import com.albert.kliniktanggap.dto.response.PatientResponse;
 import com.albert.kliniktanggap.entity.Patient;
 import com.albert.kliniktanggap.entity.WeightConfig;
 import com.albert.kliniktanggap.enums.PatientStatus;
-import com.albert.kliniktanggap.enums.PriorityLevel;
 import com.albert.kliniktanggap.repository.PatientRepository;
 import com.albert.kliniktanggap.repository.WeightConfigRepository;
 import com.albert.kliniktanggap.service.ActivityLogService;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PatientServiceImpl implements PatientService {
-
     private final PatientRepository patientRepository;
     private final WeightConfigRepository weightConfigRepository;
     private final PriorityCalculatorService calculator;
@@ -65,14 +63,14 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public List<PatientResponse> findAll() {
         return patientRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(this::mapResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<PatientResponse> findByStatus(PatientStatus status) {
         return patientRepository.findByStatus(status).stream()
-                .map(this::toResponse)
+                .map(this::mapResponse)
                 .collect(Collectors.toList());
     }
 
@@ -83,10 +81,10 @@ public class PatientServiceImpl implements PatientService {
         }
         if (search == null || search.isBlank()) {
             return patientRepository.findByStatusInOrderByPriorityDescScoreDescCreatedAtAsc(statuses)
-                    .stream().map(this::toResponse).collect(Collectors.toList());
+                    .stream().map(this::mapResponse).collect(Collectors.toList());
         }
         return patientRepository.searchByStatusesAndName(statuses, search)
-                .stream().map(this::toResponse).collect(Collectors.toList());
+                .stream().map(this::mapResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -122,6 +120,28 @@ public class PatientServiceImpl implements PatientService {
     }
 
     public static PatientResponse toResponse(Patient p) {
+        return PatientResponse.builder()
+                .id(p.getId())
+                .name(p.getName())
+                .age(p.getAge())
+                .gender(p.getGender())
+                .phone(p.getPhone())
+                .complaint(p.getComplaint())
+                .duration(p.getDuration())
+                .severity(p.getSeverity())
+                .medicalHistories(p.getMedicalHistories())
+                .score(p.getScore())
+                .priority(p.getPriority())
+                .status(p.getStatus())
+                .createdAt(p.getCreatedAt())
+                .queueEntryTime(p.getQueueEntryTime())
+                .servedTime(p.getServedTime())
+                .completedAt(p.getCompletedAt())
+                .notes(p.getNotes())
+                .build();
+    }
+
+    public PatientResponse mapResponse(Patient p) {
         return PatientResponse.builder()
                 .id(p.getId())
                 .name(p.getName())
