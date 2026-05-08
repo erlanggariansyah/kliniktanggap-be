@@ -7,6 +7,7 @@ import com.albert.kliniktanggap.entity.WeightConfig;
 import com.albert.kliniktanggap.enums.PatientStatus;
 import com.albert.kliniktanggap.repository.PatientRepository;
 import com.albert.kliniktanggap.repository.WeightConfigRepository;
+import com.albert.kliniktanggap.dto.request.StatusUpdateRequest;
 import com.albert.kliniktanggap.service.ActivityLogService;
 import com.albert.kliniktanggap.service.PatientService;
 import com.albert.kliniktanggap.service.PriorityCalculatorService;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,7 @@ public class PatientServiceImpl implements PatientService {
                 .severity(request.getSeverity())
                 .medicalHistories(request.getMedicalHistories() != null ? request.getMedicalHistories() : List.of())
                 .status(PatientStatus.WAITING)
+                .queueEntryTime(LocalDateTime.now())
                 .build();
 
         double score = calculator.calculateScore(patient, weights);
@@ -117,6 +120,43 @@ public class PatientServiceImpl implements PatientService {
         patient.setPriority(PriorityCalculatorServiceImpl.determinePriority(score));
 
         return toResponse(patientRepository.save(patient));
+    }
+
+    @Override
+    @Transactional
+    public PatientResponse updateStatus(Long id, StatusUpdateRequest request) {
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        patient.setStatus(request.getStatus());
+        if (request.getNotes() != null && !request.getNotes().isBlank()) {
+            patient.setNotes(request.getNotes());
+        }
+
+        if (request.getStatus() == PatientStatus.IN_PROGRESS && patient.getServedTime() == null) {
+            patient.setServedTime(LocalDateTime.now());
+        }
+        if ((request.getStatus() == PatientStatus.COMPLETED || request.getStatus() == PatientStatus.REFERRED) && patient.getCompletedAt() == null) {
+            patient.setCompletedAt(LocalDateTime.now());
+        }
+
+        Patient saved = patientRepository.save(patient);
+
+        activityLogService.log(
+                request.getStatus() == PatientStatus.IN_PROGRESS ? com.albert.kliniktanggap.enums.ActivityType.INPUT :
+                        request.getStatus() == PatientStatus.COMPLETED ? com.albert.kliniktanggap.enums.ActivityType.COMPLETED :
+                        request.getStatus() == PatientStatus.REFERRED ? com.albert.kliniktanggap.enums.ActivityType.REFERRED :
+                        com.albert.kliniktanggap.enums.ActivityType.INPUT,
+                request.getStatus() == PatientStatus.IN_PROGRESS ? "Pasien mulai dilayani" :
+                        request.getStatus() == PatientStatus.COMPLETED ? "Pasien selesai dilayani" :
+                        request.getStatus() == PatientStatus.REFERRED ? "Pasien dirujuk" :
+                        "Perubahan status pasien",
+                "Pasien: " + saved.getName() + (request.getNotes() != null && !request.getNotes().isBlank() ? ", Catatan: " + request.getNotes() : ""),
+                "Sistem",
+                "Sistem"
+        );
+
+        return toResponse(saved);
     }
 
     public static PatientResponse toResponse(Patient p) {

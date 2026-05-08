@@ -2,6 +2,7 @@ package com.albert.kliniktanggap.controller;
 
 import com.albert.kliniktanggap.dto.ApiResponse;
 import com.albert.kliniktanggap.dto.request.PatientRequest;
+import com.albert.kliniktanggap.dto.request.StatusUpdateRequest;
 import com.albert.kliniktanggap.dto.response.PatientResponse;
 import com.albert.kliniktanggap.enums.PatientStatus;
 import com.albert.kliniktanggap.service.PatientService;
@@ -38,6 +39,11 @@ public class PatientController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<PatientResponse>> update(@PathVariable Long id, @Valid @RequestBody PatientRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Pasien berhasil diperbarui", patientService.update(id, request)));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<PatientResponse>> updateStatus(@PathVariable Long id, @Valid @RequestBody StatusUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Status pasien berhasil diperbarui", patientService.updateStatus(id, request)));
     }
 
     @GetMapping("/status/{status}")

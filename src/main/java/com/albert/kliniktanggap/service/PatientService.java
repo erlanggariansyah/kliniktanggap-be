@@ -13,4 +13,5 @@ public interface PatientService {
     List<PatientResponse> search(String search, List<PatientStatus> statuses);
     PatientResponse findById(Long id);
     PatientResponse update(Long id, PatientRequest request);
+    PatientResponse updateStatus(Long id, com.albert.kliniktanggap.dto.request.StatusUpdateRequest request);
 }
