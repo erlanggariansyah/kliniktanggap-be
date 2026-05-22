@@ -13,7 +13,6 @@ public class UserRequest {
     @NotBlank
     @Email
     private String email;
-    @NotBlank
     private String password;
     @NotNull
     private UserRole role;

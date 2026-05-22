@@ -5,6 +5,7 @@ import com.albert.kliniktanggap.enums.*;
 import com.albert.kliniktanggap.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PatientRepository patientRepository;
     private final WeightConfigRepository weightConfigRepository;
     private final ActivityLogRepository activityLogRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -31,9 +33,9 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initUsers() {
         if (userRepository.count() > 0) return;
-        userRepository.save(User.builder().name("Petugas Front Desk").email("petugas@klinik.com").password("password").role(UserRole.PETUGAS).active(true).lastLoginAt(LocalDateTime.of(2024, 1, 15, 8, 0)).build());
-        userRepository.save(User.builder().name("Dr. Ahmad").email("dokter@klinik.com").password("password").role(UserRole.DOKTER).active(true).lastLoginAt(LocalDateTime.of(2024, 1, 15, 9, 0)).build());
-        userRepository.save(User.builder().name("Admin Sistem").email("admin@klinik.com").password("password").role(UserRole.ADMIN).active(true).lastLoginAt(LocalDateTime.of(2024, 1, 15, 7, 0)).build());
+        userRepository.save(User.builder().name("Petugas Front Desk").email("petugas@klinik.com").password(passwordEncoder.encode("password")).role(UserRole.PETUGAS).active(true).lastLoginAt(LocalDateTime.of(2024, 1, 15, 8, 0)).build());
+        userRepository.save(User.builder().name("Dr. Ahmad").email("dokter@klinik.com").password(passwordEncoder.encode("password")).role(UserRole.DOKTER).active(true).lastLoginAt(LocalDateTime.of(2024, 1, 15, 9, 0)).build());
+        userRepository.save(User.builder().name("Admin Sistem").email("admin@klinik.com").password(passwordEncoder.encode("password")).role(UserRole.ADMIN).active(true).lastLoginAt(LocalDateTime.of(2024, 1, 15, 7, 0)).build());
     }
 
     private void initWeightConfig() {
